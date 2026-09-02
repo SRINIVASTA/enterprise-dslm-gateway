@@ -109,7 +109,7 @@ with tab_main:
         st.subheader("🎛️ 2. Inference Hyperparameters")
         model_choice = st.selectbox(
             "Target Google Architecture:", 
-            ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+            ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro", "text-embedding-004"]
         )
         temperature = st.slider("Temperature (Precision Control):", min_value=0.0, max_value=1.0, value=0.1, step=0.05)
         max_tokens = st.slider("Max Output Tokens:", min_value=10, max_value=2048, value=300, step=10)
