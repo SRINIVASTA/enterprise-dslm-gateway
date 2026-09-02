@@ -125,8 +125,11 @@ with tab_main:
         )
         st.text_area("System Prompt Preview (Read-Only):", value=template_text, height=130, disabled=True)
 
-        st.markdown("---")
+                st.markdown("---")
         st.subheader("📝 4. Live Data Feed Input")
+        
+        # 🌐 TARGET ROUTE: Direct raw asset link matching your repository configuration schema
+        GITHUB_LOG_URL = "https://githubusercontent.com"
         
         sample_log = (
             "[ALARM] 2026-09-02T10:14:22Z\n"
@@ -140,11 +143,33 @@ with tab_main:
         if "input_buffer" not in st.session_state:
             st.session_state.input_buffer = sample_log
             
-        if st.button("📥 Reset to Sample Telecom Fault Log"):
-            st.session_state.input_buffer = sample_log
-            st.rerun()
-            
-        raw_input = st.text_area("Enter Logs:", value=st.session_state.input_buffer, key="log_input_feed")
+        # UI Action Row Partition Setup
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            if st.button("📥 Pull Automated Logs from GitHub", use_container_width=True):
+                with st.spinner("Fetching master telemetry files from main branch..."):
+                    try:
+                        res = requests.get(GITHUB_LOG_URL, timeout=8)
+                        if res.status_code == 200:
+                            st.session_state.input_buffer = res.text
+                            st.success("✅ Synchronized with GitHub repository records.")
+                            st.rerun()
+                        else:
+                            st.error(f"⚠️ Repository file offline (HTTP {res.status_code}). Loading base local copy.")
+                            st.session_state.input_buffer = sample_log
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Connection to GitHub Blocked: {str(e)}")
+                        st.session_state.input_buffer = sample_log
+                        st.rerun()
+                        
+        with col_btn2:
+            if st.button("🔄 Reset to Default Local Log Template", use_container_width=True):
+                st.session_state.input_buffer = sample_log
+                st.rerun()
+                
+        st.markdown(" ")
+        raw_input = st.text_area("Enter Logs:", value=st.session_state.input_buffer, key="log_input_feed", height=150)
         
         # Local regex scanning step triggers in-flight prior to variable string injection
         masked_input = mask_sensitive_data(raw_input)
