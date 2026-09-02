@@ -2,28 +2,28 @@ import json
 import requests
 
 def upload_to_google_ai(api_key: str, display_name: str, text_content: str) -> dict:
-    """
-    Streams a plain text log dump payload directly to the Google File API ecosystem.
-    Returns the parsed JSON response containing the unique Google Cloud URI resource pointer.
-    """
+    """Streams a plain text log dump payload directly to the Google File API ecosystem."""
     if not api_key or not text_content.strip():
         return {"status": "error", "message": "Missing active credentials or payload assets."}
         
     try:
         # 🌐 FIXED: Rebuilt uploading path targeting Google's native multi-part storage endpoint
-        upload_url = f"https://googleapis.com{api_key}"
+        upload_url = "https://googleapis.com"
+        
+        # Inject key through the headers block to protect the upload stream domain
+        headers = {
+            "x-goog-api-key": api_key
+        }
         
         file_metadata = {"file": {"displayName": display_name}}
-        
-        # Pack metadata configuration blocks and data streams separately
         multipart_payload = {
             'metadata': ('metadata.json', json.dumps(file_metadata), 'application/json'),
             'file': (display_name, text_content.encode('utf-8'), 'text/plain')
         }
         
-        response = requests.post(upload_url, files=multipart_payload, timeout=30)
+        # Pass headers alongside multi-part form parameters
+        response = requests.post(upload_url, files=multipart_payload, headers=headers, timeout=30)
         
-        # Uses parentheses tuple to keep syntax perfectly clean
         if response.status_code in (200, 201):
             upload_data = response.json()
             return {
