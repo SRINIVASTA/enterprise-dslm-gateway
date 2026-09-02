@@ -10,7 +10,7 @@ def upload_to_google_ai(api_key: str, display_name: str, text_content: str) -> d
         return {"status": "error", "message": "Missing active credentials or payload assets."}
         
     try:
-        # 🌐 FIXED: Rebuilt uploading path targeting Google's native multi-part storage endpoint
+        # 🌐 Rebuilt uploading path targeting Google's native multi-part storage endpoint
         upload_url = f"https://googleapis.com{api_key}"
         
         file_metadata = {"file": {"displayName": display_name}}
@@ -23,8 +23,8 @@ def upload_to_google_ai(api_key: str, display_name: str, text_content: str) -> d
         
         response = requests.post(upload_url, files=multipart_payload, timeout=30)
         
-        # FIXED: Filled in the square brackets to resolve the compilation crash
-        if response.status_code in:
+        # ✅ FIXED: Uses parentheses tuple to prevent syntax corruption
+        if response.status_code in (200, 201):
             upload_data = response.json()
             return {
                 "status": "success",
