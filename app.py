@@ -76,30 +76,23 @@ with tab_main:
         if google_api_key:
             with st.spinner("Establishing secure handshake with Google API Studio..."):
                 try:
-                    # 🌐 FIXED: Targets the metadata route which handles empty handshake hits flawlessly
-                    api_url = "https://googleapis.com"
+                    # 🌐 FIXED: Initialize the official SDK client to manage internal endpoint mapping natively
+                    from google import genai
+                    client = genai.Client(api_key=google_api_key)
                     
-                    # Pass the token parameter cleanly inside headers to prevent mashing bugs
-                    headers = {
-                        "Content-Type": "application/json",
-                        "x-goog-api-key": google_api_key
-                    }
+                    # Force a lightweight payload generation ping to test the key's production token state
+                    res = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents='ping'
+                    )
                     
-                    # A standard GET hit to model configuration maps beautifully to a 200 validation
-                    res = requests.get(api_url, headers=headers, timeout=15)
-                    
-                    if res.status_code == 200:
+                    if res.text:
                         st.success("✅ Verified Account: Google AI Studio Access Granted")
                         is_authenticated = True
                         use_mock_engine = False
-                    elif res.status_code in (400, 401, 403, 404):
-                        st.error(f"❌ Authentication Refused: Invalid Google API key credentials. (HTTP {res.status_code})")
-                        use_mock_engine = True  
-                    else:
-                        use_mock_engine = True
-                        is_authenticated = True
                 except Exception as e:
-                    st.sidebar.caption(f"Network Latency Notice: {str(e)}")
+                    # Capture exact error trace lines for clarity without breaking UI blocks
+                    st.error(f"❌ Authentication Refused: Invalid Google API key credentials. (Error: {str(e)})")
                     use_mock_engine = True
                     is_authenticated = True
 
@@ -176,48 +169,40 @@ with tab_main:
                 
                 with st.spinner(f"Processing via {current_engine.upper()} infrastructure pipeline..."):
                     
-                    # 📡 PATH A: LIVE GOOGLE GEMINI SERVICE ROUTING
+                    # 📡 PATH A: LIVE GOOGLE GEMINI NATIVE LIBRARY INFERENCE
                     if current_engine == "live":
-                        API_URL = f"https://googleapis.com{model_choice}:generateContent"
-                        headers = {
-                            "Content-Type": "application/json",
-                            "x-goog-api-key": google_api_key
-                        }
-                        payload = {
-                            "contents": [{"parts": [{"text": compiled_prompt}]}],
-                            "generationConfig": {
-                                "temperature": temperature,
-                                "maxOutputTokens": max_tokens
-                            }
-                        }
-                        
                         try:
-                            res = requests.post(API_URL, headers=headers, json=payload, timeout=40)
-                            latency = round(time.time() - start_time, 2)
+                            from google import genai
+                            from google.genai import types
                             
-                            if res.status_code == 200:
-                                result = res.json()
-                                
-                                # Uses safe extraction methods to parse Gemini response tree layouts without index errors
-                                candidates = result.get('candidates', [])
-                                if candidates:
-                                    first_cand = candidates.copy().pop(0)
-                                    output_text = first_cand.get('content', {}).get('parts', [{}]).get('text', '')
-                                else:
-                                    output_text = "Error unpacking response content layers from Google servers."
-                                    
-                                st.success("🤖 Analysis Complete (Live Google Cloud Inference)")
-                                st.markdown(output_text)
-                                
-                                # Sub-penny pricing tracker execution
-                                input_tokens = len(compiled_prompt) / 4.0
-                                output_tokens = len(output_text) / 4.0
-                                current_call_cost = ((input_tokens * 0.075) + (output_tokens * 0.30)) / 1_000_000
-                            else:
-                                st.error(f"Google API Execution Error ({res.status_code}): {res.text}")
-                                current_engine = "mock"
+                            # Initialize authorized local client session instance
+                            client = genai.Client(api_key=google_api_key)
+                            
+                            # Construct unified generation configuration map blocks
+                            config = types.GenerateContentConfig(
+                                temperature=temperature,
+                                max_output_tokens=max_tokens
+                            )
+                            
+                            # Dispatch payload over programmatic channels
+                            response = client.models.generate_content(
+                                model=model_choice,
+                                contents=compiled_prompt,
+                                config=config
+                            )
+                            
+                            latency = round(time.time() - start_time, 2)
+                            output_text = response.text if response.text else "Empty response output matrix payload returned."
+                            
+                            st.success("🤖 Analysis Complete (Live Google Cloud Inference)")
+                            st.markdown(output_text)
+                            
+                            # Sub-penny pricing tracker execution logic proxies
+                            input_tokens = len(compiled_prompt) / 4.0
+                            output_tokens = len(output_text) / 4.0
+                            current_call_cost = ((input_tokens * 0.075) + (output_tokens * 0.30)) / 1_000_000
                         except Exception as e:
-                            st.error(f"Network bridge broken, entering offline sandbox mode... Info: {e}")
+                            st.error(f"Live network route connection blocked, downshifting to local sandbox... Info: {e}")
                             current_engine = "mock"
                     
                     # 🔌 PATH B: LOCAL RESILIENT MOCK EXECUTOR
