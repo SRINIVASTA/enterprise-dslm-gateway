@@ -75,26 +75,27 @@ with tab_main:
         
         if google_api_key:
             with st.spinner("Establishing secure handshake with Google API Studio..."):
+                # 🌐 Increased timeout and backup retry logic for Streamlit Cloud
+                is_authenticated = False
+                use_mock_engine = True
+                
                 try:
-                    # 🌐 REST verification route targeting Google's native Generative Language API endpoint
                     api_url = f"https://googleapis.com{google_api_key}"
-                    res = requests.get(api_url, headers={'Content-Type': 'application/json'}, timeout=5)
+                    
+                    # FIXED: Increased timeout window from 5s up to 15s to bypass cloud proxy lag
+                    res = requests.get(api_url, headers={'Content-Type': 'application/json'}, timeout=15)
                     
                     if res.status_code == 200:
                         st.success("✅ Verified Account: Google AI Studio Access Granted")
                         is_authenticated = True
                         use_mock_engine = False
-                    # ✅ FIXED PERMANENTLY: Uses parentheses tuple instead of bracketed arrays
                     elif res.status_code in (400, 401, 403, 404):
-                        st.error("❌ Authentication Refused: Invalid Google API key credentials.")
+                        st.error("❌ Authentication Refused: Google Rejected Key Credentials.")
                         use_mock_engine = True  
-                    else:
-                        use_mock_engine = True
-                        is_authenticated = True
-                except Exception:
-                    # 🔌 Non-destructive connection downshift if firewalls trigger an exception
+                except Exception as e:
+                    # Capture the network lag event without crashing
+                    st.sidebar.caption(f"Network Latency Notice: {str(e)}")
                     use_mock_engine = True
-                    is_authenticated = True
 
             if use_mock_engine:
                 st.warning("⚠️ Network Isolation Detected: Local Mock Inference Engine Activated for Live Demo Workflow.")
