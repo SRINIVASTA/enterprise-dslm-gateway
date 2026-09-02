@@ -3,6 +3,8 @@ headless = true
 address = "0.0.0.0"
 port = 8501
 maxUploadSize = 25
+enableCORS = false            # Controlled routing protection block
+enableXsrfProtection = true   # Cross-Site Request Forgery protection active
 
 [theme]
 primaryColor = "#FF4B4B"
@@ -12,8 +14,4 @@ textColor = "#FAFAFA"
 font = "sans serif"
 
 [client]
-showErrorDetails = false
-[server]
-headless = true
-enableCORS = false
-enableXsrfProtection = true
+showErrorDetails = false      # Prevents raw Python stack traces leaking to users
