@@ -128,7 +128,7 @@ with tab_main:
         st.markdown("---")
         st.subheader("📝 4. Live Data Feed Input")
         
-        # 🌐 TARGET ROUTE: Direct raw asset link matching your repository configuration schema
+        # 🌐 FIXED LINK: Captures raw log blocks directly bypassing GitHub UI wrappers
         GITHUB_LOG_URL = "https://githubusercontent.com"
         
         sample_log = (
@@ -137,29 +137,29 @@ with tab_main:
             "COMPONENT: IMS_HSS_CORE_02\n"
             "TARGET_IP: 10.145.22.89\n"
             "ERROR_CODE: 504 Gateway Timeout\n"
-            "DESCRIPTION: Diameter interface connection dropped during subscriber profile retrieval sequence. LTE attached devices failing VoLTE registration handshakes."
+            "DESCRIPTION: Diameter interface connection dropped during subscriber profile retrieval sequence."
         )
         
         if "input_buffer" not in st.session_state:
             st.session_state.input_buffer = sample_log
             
-        # UI Action Row Partition Setup
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
             if st.button("📥 Pull Automated Logs from GitHub", use_container_width=True):
-                with st.spinner("Fetching master telemetry files from main branch..."):
+                with st.spinner("Syncing data assets live from repository branch..."):
                     try:
+                        # Fetch the direct text payload from your raw link path
                         res = requests.get(GITHUB_LOG_URL, timeout=8)
                         if res.status_code == 200:
                             st.session_state.input_buffer = res.text
-                            st.success("✅ Synchronized with GitHub repository records.")
+                            st.success("✅ Synchronized: Master Ingestion Payload (Repo Run: 006) Loaded!")
                             st.rerun()
                         else:
-                            st.error(f"⚠️ Repository file offline (HTTP {res.status_code}). Loading base local copy.")
+                            st.error(f"⚠️ Repository File Link Offline (HTTP {res.status_code}).")
                             st.session_state.input_buffer = sample_log
                             st.rerun()
                     except Exception as e:
-                        st.error(f"❌ Connection to GitHub Blocked: {str(e)}")
+                        st.error(f"❌ Connection Blocked: {str(e)}")
                         st.session_state.input_buffer = sample_log
                         st.rerun()
                         
@@ -168,8 +168,7 @@ with tab_main:
                 st.session_state.input_buffer = sample_log
                 st.rerun()
                 
-        st.markdown(" ")
-        raw_input = st.text_area("Enter Logs:", value=st.session_state.input_buffer, key="log_input_feed", height=150)
+        raw_input = st.text_area("Enter Logs:", value=st.session_state.input_buffer, key="log_input_feed", height=200)
         
         # Local regex scanning step triggers in-flight prior to variable string injection
         masked_input = mask_sensitive_data(raw_input)
@@ -178,7 +177,6 @@ with tab_main:
         with st.expander("🔍 Preview Masked Payload", expanded=True):
             st.code(compiled_prompt, language="text")
             
-        # Evaluate total privilege matrix blocks
         allow_execution = is_authenticated and not gateway_blocked and not is_auditor
         
         btn_label = "Run Pipeline"
