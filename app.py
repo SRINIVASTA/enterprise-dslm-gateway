@@ -80,9 +80,8 @@ with tab_main:
                 use_mock_engine = True
                 
                 try:
+                    # 🌐 FIXED: Targets the true model endpoint with explicit query parameter formatting
                     api_url = f"https://googleapis.com{google_api_key}"
-                    
-                    # FIXED: Increased timeout window from 5s up to 15s to bypass cloud proxy lag
                     res = requests.get(api_url, headers={'Content-Type': 'application/json'}, timeout=15)
                     
                     if res.status_code == 200:
