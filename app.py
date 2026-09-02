@@ -64,43 +64,50 @@ with tab_main:
     with col_config:
         st.subheader("🔑 1. Authentication")
         hf_token = st.text_input("Paste Hugging Face Token:", type="password", placeholder="hf_...", key="main_token")
+        
+        # 🛡️ FIX: Added a checkbox to bypass online account verification if Hugging Face blocks the handshake
+        bypass_verification = st.checkbox("🔌 Enable Hybrid Fallback (Skip verification check if blocked)", value=False)
         is_authenticated = False
         
         if hf_token:
-            with st.spinner("Establishing secure handshake with Hugging Face..."):
-                try:
-                    res = requests.get(
-                        "https://huggingface.co", 
-                        headers={"Authorization": f"Bearer {hf_token}"}, 
-                        timeout=25
-                    )
-                    
-                    if res.status_code == 200:
-                        user_profile_data = res.json()
-                        st.success(f"✅ Verified Account: {user_profile_data.get('name', 'User Profile')}")
-                        is_authenticated = True
-                    elif res.status_code == 401:
-                        st.error("❌ Authentication Refused: Invalid token. Verify that your token has 'Read' or 'Write' permissions.")
-                    else:
-                        st.error(f"❌ Handshake Error: Server responded with status {res.status_code}. Retrying stack...")
-                        
-                except requests.exceptions.Timeout:
-                    st.error("⚠️ Connection Timeout: The Hugging Face authentication gateway is experiencing overhead. Retrying...")
-                except Exception:
+            if bypass_verification:
+                st.warning("⚠️ Hybrid Fallback Active: Token verification skipped. App will pass token straight to models.")
+                is_authenticated = True
+            else:
+                with st.spinner("Establishing secure handshake with Hugging Face..."):
                     try:
-                        time.sleep(1.5)
-                        fallback_res = requests.get(
+                        res = requests.get(
                             "https://huggingface.co", 
                             headers={"Authorization": f"Bearer {hf_token}"}, 
-                            timeout=20
+                            timeout=25
                         )
-                        if fallback_res.status_code == 200:
-                            st.success(f"✅ Verified Account (Fallback Mode Active): {fallback_res.json().get('name', 'User')}")
+                        
+                        if res.status_code == 200:
+                            user_profile_data = res.json()
+                            st.success(f"✅ Verified Account: {user_profile_data.get('name', 'User Profile')}")
                             is_authenticated = True
+                        elif res.status_code == 401:
+                            st.error("❌ Authentication Refused: Invalid token. Verify that your token has 'Read' or 'Write' permissions.")
                         else:
-                            st.error("❌ Gateway Handshake Failed completely. Double check network rules.")
+                            st.error(f"❌ Handshake Error: Server responded with status {res.status_code}. Try enabling Hybrid Fallback above.")
+                            
+                    except requests.exceptions.Timeout:
+                        st.error("⚠️ Connection Timeout. Try enabling the 'Hybrid Fallback' checkbox above to run offline.")
                     except Exception:
-                        st.error("❌ Validation Failed: Persistent connection block encountered.")
+                        try:
+                            time.sleep(1.5)
+                            fallback_res = requests.get(
+                                "https://huggingface.co", 
+                                headers={"Authorization": f"Bearer {hf_token}"}, 
+                                timeout=20
+                            )
+                            if fallback_res.status_code == 200:
+                                st.success(f"✅ Verified Account: {fallback_res.json().get('name', 'User')}")
+                                is_authenticated = True
+                            else:
+                                st.error("❌ Gateway Handshake Failed. Please turn on 'Hybrid Fallback' to test your inputs.")
+                        except Exception:
+                            st.error("❌ Validation Failed: Persistent connection block encountered. Check 'Hybrid Fallback' above to force authorize.")
         else:
             st.info("💡 Paste your Hugging Face user access token above to begin.")
 
