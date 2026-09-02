@@ -76,9 +76,17 @@ with tab_main:
         if google_api_key:
             with st.spinner("Establishing secure handshake with Google API Studio..."):
                 try:
-                    # 🌐 FIXED: Rebuilt target endpoint string layout to separate the domain and your key natively
-                    api_url = f"https://googleapis.com{google_api_key}"
-                    res = requests.get(api_url, headers={'Content-Type': 'application/json'}, timeout=15)
+                    # 🌐 FIXED: Clean URL domain with NO key text parameter mashing
+                    api_url = "https://googleapis.com"
+                    
+                    # Pass the key safely inside the HTTP headers
+                    headers = {
+                        "Content-Type": "application/json",
+                        "x-goog-api-key": google_api_key
+                    }
+                    test_payload = {"contents": [{"parts": [{"text": "ping"}]}]}
+                    
+                    res = requests.post(api_url, json=test_payload, headers=headers, timeout=15)
                     
                     if res.status_code == 200:
                         st.success("✅ Verified Account: Google AI Studio Access Granted")
@@ -166,15 +174,14 @@ with tab_main:
                 
                 with st.spinner(f"Processing via {current_engine.upper()} infrastructure pipeline..."):
                     
+                    # 📡 PATH A: LIVE GOOGLE GEMINI SERVICE ROUTING
                     if current_engine == "live":
-                        API_URL = f"https://googleapis.com{model_choice}:generateContent?key={google_api_key}"
-                        headers = {"Content-Type": "application/json"}
-                        payload = {
-                            "contents": [{"parts": [{"text": compiled_prompt}]}],
-                            "generationConfig": {
-                                "temperature": temperature,
-                                "maxOutputTokens": max_tokens
-                            }
+                        API_URL = f"https://googleapis.com{model_choice}:generateContent"
+                        
+                        # FIXED: Uses the functional x-goog-api-key layout
+                        headers = {
+                            "Content-Type": "application/json",
+                            "x-goog-api-key": google_api_key
                         }
                         
                         try:
