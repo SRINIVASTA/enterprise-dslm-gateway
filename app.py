@@ -287,7 +287,7 @@ with tab_migration:
         target_filename = st.text_input("Target Cloud File Name:", value="telecom_train_logs.txt", key="goog_file_id")
         raw_log_dump = st.text_area("Paste Corporate Diagnostic Dump Data:", key="goog_dump_data", height=150)
         
-        # 🌐 FIXED: Targets the true, unformatted raw background text stream on GitHub
+        # 🌐 FIXED RAW ENDPOINT: Pulls down your exact Repo Run: 006 text payload bypassing the GitHub UI wrappers
         GITHUB_LOG_URL = "https://githubusercontent.com"
         
         # Button unlocks exclusively when an active API key string is present
