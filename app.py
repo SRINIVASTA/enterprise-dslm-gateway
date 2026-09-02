@@ -272,4 +272,5 @@ with tab_migration:
                     
                     if result["status"] == "success":
                         st.success("🚀 Upload successful! Your operational records are mapped to Google AI Storage.")
-                        st.code(f"Google Resource Location Pointer (URI):\n{result['uri']}", language="text")else:st.error(result["message"])
+                        st.code(f"Google Resource Location Pointer (URI):\n{result['uri']}", language="text")
+                    else:st.error(result["message"])
