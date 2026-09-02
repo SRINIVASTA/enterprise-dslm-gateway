@@ -7,7 +7,7 @@ import time
 from scripts.data_masker import mask_sensitive_data
 from scripts.dataset_uploader import upload_to_google_ai
 
-# App Page Layout Initialization 
+# App Page Layout Base Initialization 
 st.set_page_config(page_title="Enterprise DSLM Studio", page_icon="🎛️", layout="wide")
 st.title("🔀 Advanced Enterprise DSLM Portfolio Studio")
 st.caption("Modular multi-file gateway architecture mapped to the Google Gemini Endpoint ecosystem.")
@@ -79,7 +79,7 @@ with tab_main:
                     # 🌐 FIXED: Targets the metadata route which handles empty handshake hits flawlessly
                     api_url = "https://googleapis.com"
                     
-                    # Pass the token parameter cleanly inside headers
+                    # Pass the token parameter cleanly inside headers to prevent mashing bugs
                     headers = {
                         "Content-Type": "application/json",
                         "x-goog-api-key": google_api_key
@@ -153,12 +153,14 @@ with tab_main:
             
         raw_input = st.text_area("Enter Logs:", value=st.session_state.input_buffer, key="log_input_feed")
         
+        # Local regex scanning step triggers in-flight prior to variable string injection
         masked_input = mask_sensitive_data(raw_input)
         compiled_prompt = template_text.replace("{user_input}", masked_input)
         
         with st.expander("🔍 Preview Masked Payload", expanded=True):
             st.code(compiled_prompt, language="text")
             
+        # Evaluate total privilege matrix blocks
         allow_execution = is_authenticated and not gateway_blocked and not is_auditor
         
         btn_label = "Run Pipeline"
@@ -177,11 +179,16 @@ with tab_main:
                     # 📡 PATH A: LIVE GOOGLE GEMINI SERVICE ROUTING
                     if current_engine == "live":
                         API_URL = f"https://googleapis.com{model_choice}:generateContent"
-                        
-                        # FIXED: Uses the functional x-goog-api-key layout
                         headers = {
                             "Content-Type": "application/json",
                             "x-goog-api-key": google_api_key
+                        }
+                        payload = {
+                            "contents": [{"parts": [{"text": compiled_prompt}]}],
+                            "generationConfig": {
+                                "temperature": temperature,
+                                "maxOutputTokens": max_tokens
+                            }
                         }
                         
                         try:
@@ -190,16 +197,19 @@ with tab_main:
                             
                             if res.status_code == 200:
                                 result = res.json()
+                                
+                                # Uses safe extraction methods to parse Gemini response tree layouts without index errors
                                 candidates = result.get('candidates', [])
                                 if candidates:
                                     first_cand = candidates.copy().pop(0)
-                                    output_text = first_cand.get('content', {}).get('parts', [{}])[0].get('text', '')
+                                    output_text = first_cand.get('content', {}).get('parts', [{}]).get('text', '')
                                 else:
-                                    output_text = "Error unpacking response content layers."
+                                    output_text = "Error unpacking response content layers from Google servers."
                                     
                                 st.success("🤖 Analysis Complete (Live Google Cloud Inference)")
                                 st.markdown(output_text)
                                 
+                                # Sub-penny pricing tracker execution
                                 input_tokens = len(compiled_prompt) / 4.0
                                 output_tokens = len(output_text) / 4.0
                                 current_call_cost = ((input_tokens * 0.075) + (output_tokens * 0.30)) / 1_000_000
@@ -210,6 +220,7 @@ with tab_main:
                             st.error(f"Network bridge broken, entering offline sandbox mode... Info: {e}")
                             current_engine = "mock"
                     
+                    # 🔌 PATH B: LOCAL RESILIENT MOCK EXECUTOR
                     if current_engine == "mock":
                         time.sleep(1.5)
                         latency = round(time.time() - start_time, 2)
@@ -225,6 +236,7 @@ with tab_main:
                         )
                         current_call_cost = 0.00015 
                     
+                    # Update global telemetry counters
                     st.session_state.total_spend += current_call_cost
                     st.session_state.query_count += 1
                     
@@ -250,6 +262,7 @@ with tab_migration:
         st.subheader("📦 Dataset Migration Center")
         st.caption("Publish telemetry data assets directly to your Google Cloud AI Project storage plane.")
         
+        # Automatically inherit the key entered in Tab 1
         active_key = google_api_key if google_api_key else ""
         
         if not active_key:
@@ -258,11 +271,13 @@ with tab_migration:
         target_filename = st.text_input("Target Cloud File Name:", value="telecom_train_logs.txt", key="goog_file_id")
         raw_log_dump = st.text_area("Paste Corporate Diagnostic Dump Data:", key="goog_dump_data", height=150)
         
+        # Button unlocks exclusively when an active API key string is present
         if st.button("Upload Asset to Google File API Suite", key="goog_submit_btn", type="secondary", disabled=not active_key):
             if not raw_log_dump.strip() or not target_filename.strip():
                 st.error("❌ Missing required file metadata configurations or data content inputs.")
             else:
                 with st.spinner("Streaming data chunk payload directly to Google API infrastructure..."):
+                    # Call modularized uploader module
                     result = upload_to_google_ai(active_key, target_filename, raw_log_dump)
                     
                     if result["status"] == "success":
