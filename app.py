@@ -287,7 +287,7 @@ with tab_migration:
         target_filename = st.text_input("Target Cloud File Name:", value="telecom_train_logs.txt", key="goog_file_id")
         raw_log_dump = st.text_area("Paste Corporate Diagnostic Dump Data:", key="goog_dump_data", height=150)
         
-        # 🌐 FIXED RAW ASSER LINK: Points directly to your personal repository data file stream
+        # 🌐 FIXED: Targets the true, unformatted raw background text stream on GitHub
         GITHUB_LOG_URL = "https://githubusercontent.com"
         
         # Button unlocks exclusively when an active API key string is present
@@ -302,6 +302,8 @@ with tab_migration:
                     if res.status_code == 200:
                         final_upload_payload = res.text
                         st.info("📥 Captured 'telecom_train_logs.txt' successfully from main branch repository stream.")
+                    else:
+                        st.error(f"❌ GitHub Server Error: Received HTTP status code {res.status_code}")
                 except Exception as e:
                     st.error(f"❌ Fallback path network exception: {str(e)}")
             
