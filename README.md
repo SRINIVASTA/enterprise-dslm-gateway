@@ -74,6 +74,6 @@ Manages authentication inputs via hidden runtime text elements (`type="password"
 ## 📊 Live Cloud Execution Trace Journey
 
 1.  **Handshake Triage:** The administrator enters their Google API credential key. The app attempts a 5-second verification ping to the Google models endpoint. If a network block or DNS error occurs, it switches seamlessly to `Sandbox Engine Mode`.
-2.  **Scrubbing Evaluation:** The user pastes raw, sensitive telecom error metrics into the terminal interface. The script scrubs the true database network location (`10.145.22.89`) instantaneously.
+2.  **Scrubbing Evaluation:** The user pastes raw, sensitive telecom error metrics into the terminal interface. The script scrubs the true database network location (`10.xxx.xx.xx`) instantaneously.
 3.  **Prompt Vector Generation:** The system replaces the `{user_input}` variable inside the enterprise blueprint template with the sanitised data block.
 4.  **Telemetry Reporting:** The mock engine executes local text synthesis parsing, metrics calculations, latency profiles (**1.5s** simulation), and updates the financial wallet tracking meter.
