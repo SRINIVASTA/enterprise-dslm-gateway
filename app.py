@@ -307,9 +307,11 @@ with tab_migration:
                     res = requests.get(GITHUB_LOG_URL, timeout=8)
                     if res.status_code == 200:
                         final_upload_payload = res.text
+                        
+                        # ✨ FIXED HERE: Injects the fetched repo text into the text area's session memory state
+                        st.session_state["goog_dump_data"] = res.text
+                        
                         st.info("📥 Captured 'telecom_train_logs.txt' successfully from main branch repository stream.")
-                    else:
-                        st.error(f"❌ GitHub Server Error: Received HTTP status code {res.status_code}")
                 except Exception as e:
                     st.error(f"❌ Fallback path network exception: {str(e)}")
             
