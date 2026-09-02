@@ -1,0 +1,55 @@
+======================================================================
+[TELECOM MASTER TEST INGESTION PAYLOAD - REPO RUN: 006]
+======================================================================
+
+--- DATASET CLUSTER 1: OPEN RAN & RADIO ACCESS NETWORK (LTE/5G) ---
+
+[ALARM_TRACE] 2026-09-02T14:02:11Z
+SEVERITY: MAJOR
+MANAGED_OBJECT: O_RU_CELL_SITE_SOUTH_41
+SUB_SYSTEM: RADIO_FREQUENCY_UNIT
+FAULT_ID: RF_TEMP_THRESHOLD_EXCEEDED
+TARGET_IP: 10.231.44.12
+DESCRIPTION: Remote Radio Unit internal thermistor reports temperature at 87°C. Downlink Transmit power attenuated by 6dB automatically to prevent terminal thermal degradation. Handover failures increasing rapidly for attached handsets.
+
+[ALARM_TRACE] 2026-09-02T15:22:45Z
+SEVERITY: CRITICAL
+MANAGED_OBJECT: GNODEB_CORE_ENC_109
+SUB_SYSTEM: TIME_SYNC_GPS
+FAULT_ID: JITTER_MAX_REACHED
+TARGET_IP: 10.231.12.85
+DESCRIPTION: Phase synchronization deviation exceeds 1.5 microseconds relative to primary reference clock source. Packet core dropping frames on the user plane. CPRI protocol link unstable. Inter-cell interference breaking active user streams.
+
+
+--- DATASET CLUSTER 2: CORE NETWORK & CALL SESSION PROCESSING (IMS/OSS) ---
+
+[ALARM_TRACE] 2026-09-02T16:11:02Z
+SEVERITY: CRITICAL
+MANAGED_OBJECT: IMS_CSCF_NODE_04
+SUB_SYSTEM: SIP_SIGNALING_ENGINE
+FAULT_ID: OUT_OF_MEMORY_POOL
+TARGET_IP: 192.168.42.110
+DESCRIPTION: Concurrent active registration table memory capacity utilization reached 99.8%. Incoming SIP INVITE packets rejected with 'HTTP 503 Service Unavailable'. Core proxy engine failing to route high-definition voice session requests.
+
+[ALARM_TRACE] 2026-09-02T17:45:19Z
+SEVERITY: MINOR
+MANAGED_OBJECT: OSS_ONLINE_CHARGING_SYS
+SUB_SYSTEM: OCS_AAA_INTERFACE
+FAULT_ID: LINK_RETRY_TIMEOUT
+TARGET_IP: 172.16.89.23
+DESCRIPTION: Diameter Gy interface connection dropped during real-time data data quota check events. Pre-paid mobile subscriber connections dropping unexpectedly because data validation packets cannot clear the balance authorization engine.
+
+
+--- DATASET CLUSTER 3: PACKET DATA NETWORK & TRANSPORT OPERATIONS (EPC) ---
+
+[ALARM_TRACE] 2026-09-02T18:04:33Z
+SEVERITY: CRITICAL
+MANAGED_OBJECT: EPC_UPF_EDGE_ROUTER_01
+SUB_SYSTEM: GTP_TUNNEL_MANAGER
+FAULT_ID: GTPU_DECAPSULATION_FAILURE
+TARGET_IP: 10.12.99.41
+DESCRIPTION: Hardware decapsulation chip reporting systematic parity errors on user plane routing paths. General Packet Radio Service Tunneling Protocol (GTP-U) buffers dropping frames at 35%. Mobile internet traffic failing across regional aggregation rings.
+
+======================================================================
+[END OF MASTER TELEMETRY BATCH LOG]
+======================================================================
