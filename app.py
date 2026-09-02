@@ -65,9 +65,45 @@ with tab_main:
         st.subheader("🔑 1. Authentication")
         hf_token = st.text_input("Paste Hugging Face Token:", type="password", placeholder="hf_...", key="main_token")
         
-        # 🚀 INTEGRATION: Auto-detecting if cloud network is offline to switch protocols
-        is_authenticated = True
-        st.warning("⚠️ Network Isolation Detected: Local Mock Inference Engine Activated for Live Demo Workflow.")
+        # Tracking flags for our intelligent routing states
+        is_authenticated = False
+        use_mock_engine = False
+        
+        if hf_token:
+            with st.spinner("Establishing secure handshake with Hugging Face..."):
+                try:
+                    # 🌐 Attempt active cloud verification handshake
+                    res = requests.get(
+                        "https://huggingface.co", 
+                        headers={"Authorization": f"Bearer {hf_token}"}, 
+                        timeout=5
+                    )
+                    
+                    if res.status_code == 200:
+                        user_profile_data = res.json()
+                        st.success(f"✅ Verified Account: {user_profile_data.get('name', 'User Profile')}")
+                        is_authenticated = True
+                    elif res.status_code == 401:
+                        st.error("❌ Authentication Refused: Invalid token characters.")
+                    else:
+                        # Fallback safely if server responds with error codes
+                        use_mock_engine = True
+                        is_authenticated = True
+                        
+                except Exception:
+                    # 🔌 Network isolation or DNS block encountered -> Trigger fallback mode seamlessly
+                    use_mock_engine = True
+                    is_authenticated = True
+
+            # Display the correct system connectivity badge dynamically based on the outcome
+            if use_mock_engine:
+                st.warning("⚠️ Network Isolation Detected: Local Mock Inference Engine Activated for Live Demo Workflow.")
+                # Save the fallback instruction inside the session state for Block 2 to read
+                st.session_state.engine_mode = "mock"
+            else:
+                st.session_state.engine_mode = "live"
+        else:
+            st.info("💡 Paste your Hugging Face user access token above to begin.")
 
         st.markdown("---")
         
@@ -78,6 +114,7 @@ with tab_main:
         )
         temperature = st.slider("Temperature (Precision Control):", min_value=0.01, max_value=1.5, value=0.1, step=0.05)
         max_tokens = st.slider("Max New Tokens:", min_value=10, max_value=2048, value=300, step=10)
+
     with col_exec:
         st.subheader("📜 3. Enterprise System Templates")
         template_text = (
@@ -128,25 +165,51 @@ with tab_main:
                 st.warning("⚠️ Input data feed cannot be empty.")
             else:
                 start_time = time.time()
-                with st.spinner("Processing through portfolio layer..."):
-                    # 🚀 CORE SIMULATOR LOOP: Bypasses DNS blocks by parsing metrics natively
-                    time.sleep(1.8) # Simulate inference layer latency delay
-                    latency = round(time.time() - start_time, 2)
+                current_engine = st.session_state.get("engine_mode", "mock")
+                
+                with st.spinner(f"Processing via {current_engine.upper()} infrastructure pipeline..."):
                     
-                    st.success(f"🤖 Analysis Complete (Generated via Sandbox Portfolio Core)")
+                    # 📡 PIPELINE PATH A: LIVE EXECUTION
+                    if current_engine == "live":
+                        API_URL = f"https://huggingface.co{model_choice}"
+                        headers = {"Authorization": f"Bearer {hf_token}"}
+                        payload = {"inputs": compiled_prompt, "parameters": {"temperature": temperature, "max_new_tokens": max_tokens, "return_full_text": False}}
+                        
+                        try:
+                            res = requests.post(API_URL, headers=headers, json=payload, timeout=40)
+                            latency = round(time.time() - start_time, 2)
+                            
+                            if res.status_code == 200:
+                                result = res.json()
+                                output_text = result.get('generated_text', '') if isinstance(result, list) else str(result)
+                                st.success("🤖 Analysis Complete (Live Cloud Inference)")
+                                st.write(output_text)
+                            elif res.status_code == 503:
+                                st.warning("⏳ Targeted DSLM is warming up on the cluster. Try again in a few moments.")
+                                output_text = None
+                            else:
+                                st.error(f"Execution Error ({res.status_code}): {res.text}")
+                                output_text = None
+                        except Exception as e:
+                            st.error(f"Live route crashed, falling back to mock... Error: {e}")
+                            current_engine = "mock"
                     
-                    # Exact output required by your engineering prompt template constraints
-                    st.markdown(
-                        "### 📟 Diagnostic Generation Output\n"
-                        "**- [ROOT CAUSE]:** A complete connectivity failure occurred on the Diameter interface within the **IMS_HSS_CORE_02** node infrastructure. This degradation was precipitated by an unhandled transport layer exception, which triggered a continuous chain of 504 Gateway Timeouts during subscriber database profile lookups.\n\n"
-                        "**- [IMPACT ASSESSMENT]:** Critical failure spreading to adjacent downstream subsystems. All LTE attached endpoint hardware are completely blocked from completing basic session cryptographic keys handshakes, causing an immediate, total loss of Voice over LTE (VoLTE) call setups across regional cell coverage bands.\n\n"
-                        "**- [REMEDIATION STEPS]:**\n"
-                        "1. **Isolate Interface Routing:** Manually purge the broken peering socket queues on the main database router node.\n"
-                        "2. **Execute VNF Failover Switchover:** Run the system automated scripts to migrate volatile database memory registers from `IMS_HSS_CORE_02` over to the secondary passive host server cluster.\n"
-                        "3. **Recalibrate Timeout Caps:** Tweak the internal timer value limits inside your configuration file downward from 120s down to 30s to lower the overall systemic MTTR metrics footprint."
-                    )
+                    # 🔌 PIPELINE PATH B: RESILIENT MOCK EXECUTOR
+                    if current_engine == "mock":
+                        time.sleep(1.5)
+                        latency = round(time.time() - start_time, 2)
+                        st.success("🤖 Analysis Complete (Generated via Sandbox Portfolio Core)")
+                        st.markdown(
+                            "### 📟 Diagnostic Generation Output\n"
+                            "**- [ROOT CAUSE]:** A complete connectivity failure occurred on the Diameter interface within the **IMS_HSS_CORE_02** node infrastructure. This degradation was precipitated by an unhandled transport layer exception, which triggered a continuous chain of 504 Gateway Timeouts during subscriber database profile lookups.\n\n"
+                            "**- [IMPACT ASSESSMENT]:** Critical failure spreading to adjacent downstream subsystems. All LTE attached endpoint hardware are completely blocked from completing basic session cryptographic keys handshakes, causing an immediate, total loss of Voice over LTE (VoLTE) call setups across regional cell coverage bands.\n\n"
+                            "**- [REMEDIATION STEPS]:**\n"
+                            "1. **Isolate Interface Routing:** Manually purge the broken peering socket queues on the main database router node.\n"
+                            "2. **Execute VNF Failover Switchover:** Run the system automated scripts to migrate volatile database memory registers from `IMS_HSS_CORE_02` over to the secondary passive host server cluster.\n"
+                            "3. **Recalibrate Timeout Caps:** Tweak the internal timer value limits inside your configuration file downward from 120s down to 30s to lower the overall systemic MTTR metrics footprint."
+                        )
                     
-                    # Update billing metrics dynamically inside session state
+                    # --- SHARED REUSABLE METRICS COMPUTE BLOCK ---
                     current_call_cost = 0.00015 
                     st.session_state.total_spend += current_call_cost
                     st.session_state.query_count += 1
