@@ -287,14 +287,31 @@ with tab_migration:
         target_filename = st.text_input("Target Cloud File Name:", value="telecom_train_logs.txt", key="goog_file_id")
         raw_log_dump = st.text_area("Paste Corporate Diagnostic Dump Data:", key="goog_dump_data", height=150)
         
+        # 🌐 FIXED RAW ASSER LINK: Points directly to your personal repository data file stream
+        GITHUB_LOG_URL = "https://githubusercontent.com"
+        
         # Button unlocks exclusively when an active API key string is present
         if st.button("Upload Asset to Google File API Suite", key="goog_submit_btn", type="secondary", disabled=not active_key):
-            if not raw_log_dump.strip() or not target_filename.strip():
-                st.error("❌ Missing required file metadata configurations or data content inputs.")
-            else:
+            final_upload_payload = raw_log_dump.strip()
+            
+            # 🔄 AUTOMATED GITHUB ARMED FALLBACK LAYER
+            if not final_upload_payload:
+                st.warning("⚠️ Input field blank! Automatically capturing file from GitHub repository...")
+                try:
+                    res = requests.get(GITHUB_LOG_URL, timeout=8)
+                    if res.status_code == 200:
+                        final_upload_payload = res.text
+                        st.info("📥 Captured 'telecom_train_logs.txt' successfully from main branch repository stream.")
+                except Exception as e:
+                    st.error(f"❌ Fallback path network exception: {str(e)}")
+            
+            # Final operational validation check block
+            if not target_filename.strip():
+                st.error("❌ Missing Target Cloud File Name target descriptor.")
+            elif final_upload_payload:
                 with st.spinner("Streaming data chunk payload directly to Google API infrastructure..."):
-                    # Call modularized uploader module
-                    result = upload_to_google_ai(active_key, target_filename, raw_log_dump)
+                    # Call your modularized uploader module using the fallback text payload natively
+                    result = upload_to_google_ai(active_key, target_filename, final_upload_payload)
                     
                     if result["status"] == "success":
                         st.success("🚀 Upload successful! Your operational records are mapped to Google AI Storage.")
