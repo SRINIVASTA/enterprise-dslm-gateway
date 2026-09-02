@@ -67,6 +67,13 @@ with tab_main:
     col_config, col_exec = st.columns(2, gap="large")
 
     with col_config:
+        # 🟢 STEP 1: Pre-initialize the variable at the top of the column thread
+        # This keeps Python happy while maintaining your layout order!
+        chosen_model_architecture = "gemini-1.5-flash"
+        if "main_model_selector" in st.session_state:
+            chosen_model_architecture = st.session_state["main_model_selector"]
+
+        # 🟢 STEP 2: Your exact visual layout - 1. Authentication on top!
         st.subheader("🔑 1. Authentication")
         google_api_key = st.text_input("Paste Google API Key:", type="password", placeholder="AIzaSy...", key="main_token")
         
@@ -76,23 +83,22 @@ with tab_main:
         if google_api_key:
             with st.spinner("Establishing secure handshake with Google API Studio..."):
                 try:
-                    # 🌐 FIXED: Initialize the official SDK client to manage internal endpoint mapping natively
                     from google import genai
                     client = genai.Client(api_key=google_api_key)
                     
-                    # Force a lightweight payload generation ping to test the key's production token state
+                    # ✅ FIXED: Dynamically verifies whichever model you currently have selected below!
                     res = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model=chosen_model_architecture,
                         contents='ping'
                     )
                     
                     if res.text:
-                        st.success("✅ Verified Account: Google AI Studio Access Granted")
+                        st.success(f"✅ Verified Account: Google AI Studio Access Granted ({chosen_model_architecture})")
                         is_authenticated = True
                         use_mock_engine = False
                 except Exception as e:
-                    # Capture exact error trace lines for clarity without breaking UI blocks
-                    st.error(f"❌ Authentication Refused: Invalid Google API key credentials. (Error: {str(e)})")
+                    # Captures your 429 quota exhaustion dynamically per model track line
+                    st.error(f"❌ Authentication Refused: Model Lane Quota Constraints. (Error: {str(e)})")
                     use_mock_engine = True
                     is_authenticated = True
 
@@ -106,10 +112,12 @@ with tab_main:
 
         st.markdown("---")
         
+        # 🟢 STEP 3: Your exact visual layout - 2. Inference Hyperparameters stays on the bottom!
         st.subheader("🎛️ 2. Inference Hyperparameters")
         model_choice = st.selectbox(
             "Target Google Architecture:", 
-            ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro", "text-embedding-004"]
+            ["gemini-1.5-flash", "gemini-2.5-flash", "gemini-1.5-pro", "gemini-1.0-pro", "text-embedding-004"],
+            key="main_model_selector" # Ties directly into your pre-initialized session memory token flag
         )
         temperature = st.slider("Temperature (Precision Control):", min_value=0.0, max_value=1.0, value=0.1, step=0.05)
         max_tokens = st.slider("Max Output Tokens:", min_value=10, max_value=2048, value=300, step=10)
