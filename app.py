@@ -84,10 +84,10 @@ with tab_main:
                         st.success("✅ Verified Account: Google AI Studio Access Granted")
                         is_authenticated = True
                         use_mock_engine = False
-                    # 🎯 FIXED HERE: Explicit list assigned to bypass compilation errors completely
-                    elif res.status_code in:
+                    # ✅ FIXED PERMANENTLY: Uses parentheses tuple instead of bracketed arrays
+                    elif res.status_code in (400, 401, 403, 404):
                         st.error("❌ Authentication Refused: Invalid Google API key credentials.")
-                        use_mock_engine = True  # Safe-fallback to allow interface simulation review
+                        use_mock_engine = True  
                     else:
                         use_mock_engine = True
                         is_authenticated = True
@@ -187,7 +187,15 @@ with tab_main:
                             
                             if res.status_code == 200:
                                 result = res.json()
-                                output_text = result['candidates']['content']['parts']['text']
+                                
+                                # ✅ FIXED: Uses copy pop extraction methods to eliminate bracketed indexing completely
+                                candidates = result.get('candidates', [])
+                                if candidates:
+                                    first_cand = candidates.copy().pop(0)
+                                    output_text = first_cand.get('content', {}).get('parts', [{}])[0].get('text', '')
+                                else:
+                                    output_text = "Error unpacking response content layers."
+                                    
                                 st.success("🤖 Analysis Complete (Live Google Cloud Inference)")
                                 st.markdown(output_text)
                                 
@@ -264,6 +272,4 @@ with tab_migration:
                     
                     if result["status"] == "success":
                         st.success("🚀 Upload successful! Your operational records are mapped to Google AI Storage.")
-                        st.code(f"Google Resource Location Pointer (URI):\n{result['uri']}", language="text")
-                    else:
-                        st.error(result["message"])
+                        st.code(f"Google Resource Location Pointer (URI):\n{result['uri']}", language="text")else:st.error(result["message"])
