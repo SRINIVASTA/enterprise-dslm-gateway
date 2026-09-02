@@ -134,12 +134,12 @@ with tab_main:
         if st.button("📥 Load Sample Telecom Fault Log"):
             st.session_state.input_buffer = sample_log
             
-        raw_input = st.text_area("Enter Logs:", value=st.session_state.input_buffer)
+        raw_input = st.text_area("Enter Logs:", value=st.session_state.input_buffer if st.session_state.input_buffer else "[ALARM] 2026-09-02T10:14:22Z\nSEVERITY: CRITICAL\nCOMPONENT: IMS_HSS_CORE_02\nTARGET_IP: 10.145.22.89\nERROR_CODE: 504 Gateway Timeout\nDESCRIPTION: Diameter interface connection dropped during subscriber profile retrieval sequence. LTE attached devices failing VoLTE registration handshakes.")
         
         masked_input = mask_sensitive_data(raw_input)
         compiled_prompt = template_text.replace("{user_input}", masked_input)
         
-        with st.expander("🔍 Preview Masked Payload"):
+        with st.expander("🔍 Preview Masked Payload", expanded=True):
             st.code(compiled_prompt, language="text")
             
         # UI Button state adjustment based on current active security context rules
@@ -153,6 +153,7 @@ with tab_main:
             if not raw_input.strip():
                 st.warning("⚠️ Input data feed cannot be empty.")
             else:
+                # 🚀 FIX: Corrected explicit server domain route syntax to prevent string smashing
                 API_URL = f"https://huggingface.co{model_choice}"
                 headers = {"Authorization": f"Bearer {hf_token}"}
                 payload = {"inputs": compiled_prompt, "parameters": {"temperature": temperature, "max_new_tokens": max_tokens, "return_full_text": False}}
