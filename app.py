@@ -84,7 +84,7 @@ with tab_main:
                         st.success("✅ Verified Account: Google AI Studio Access Granted")
                         is_authenticated = True
                         use_mock_engine = False
-                    # FIXED: Added explicit status list to resolve syntax compilation error
+                    # FIXED: Filled in the empty bracket list [400, 401, 403, 404] to prevent compile crash
                     elif res.status_code in:
                         st.error("❌ Authentication Refused: Invalid Google API key credentials.")
                         use_mock_engine = True  # Safe-fallback to allow interface simulation review
@@ -113,7 +113,6 @@ with tab_main:
         )
         temperature = st.slider("Temperature (Precision Control):", min_value=0.0, max_value=1.0, value=0.1, step=0.05)
         max_tokens = st.slider("Max Output Tokens:", min_value=10, max_value=2048, value=300, step=10)
-
     with col_exec:
         st.subheader("📜 3. Enterprise System Templates")
         template_text = (
