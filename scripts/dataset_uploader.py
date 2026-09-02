@@ -1,29 +1,36 @@
-import streamlit as st
+import json
+import requests
 
-def handle_web_upload():
-    """Handles dataset upload UI directly via the Streamlit web environment."""
-    st.subheader("📦 Dataset Migration Center")
-    st.caption("Publish training files directly to your private Hugging Face account layout.")
-    
-    mig_token = st.text_input("HF Upload Token:", type="password", key="mig_upload_token")
-    target_repo = st.text_input("HF Dataset Repo ID (e.g., org/my-dataset):", key="mig_repo_id")
-    raw_jsonl = st.text_area("Paste JSON Lines Data:", key="mig_jsonl_data")
-    
-    if st.button("Upload to Hugging Face Hub", key="mig_submit_btn"):
-        if not mig_token or not target_repo or not raw_jsonl.strip():
-            st.error("❌ Missing required configuration fields.")
+def upload_to_google_ai(api_key: str, display_name: str, text_content: str) -> dict:
+    """
+    Streams a plain text log dump payload directly to the Google File API ecosystem.
+    Returns the parsed JSON response containing the unique Google Cloud URI resource pointer.
+    """
+    if not api_key or not text_content.strip():
+        return {"status": "error", "message": "Missing active credentials or payload assets."}
+        
+    try:
+        # Google Multi-part REST Upload Endpoint
+        upload_url = f"https://googleapis.com{api_key}"
+        
+        file_metadata = {"file": {"displayName": display_name}}
+        
+        # Pack metadata configuration blocks and data streams separately
+        multipart_payload = {
+            'metadata': ('metadata.json', json.dumps(file_metadata), 'application/json'),
+            'file': (display_name, text_content.encode('utf-8'), 'text/plain')
+        }
+        
+        response = requests.post(upload_url, files=multipart_payload, timeout=30)
+        
+        if response.status_code in [200, 201]:
+            upload_data = response.json()
+            return {
+                "status": "success",
+                "uri": upload_data.get('file', {}).get('uri', 'No URI returned')
+            }
         else:
-            with st.spinner("Uploading text payload directly to Hugging Face..."):
-                try:
-                    from huggingface_hub import HfApi
-                    api = HfApi()
-                    api.upload_file(
-                        path_or_fileobj=raw_jsonl.encode('utf-8'),
-                        path_in_repo="train.jsonl",
-                        repo_id=target_repo,
-                        repo_type="dataset",
-                        token=mig_token
-                    )
-                    st.success("🚀 Upload successful! Your records are now updated on the Hub.")
-                except Exception as e:
-                    st.error(f"Upload failed: {e}")
+            return {"status": "error", "message": f"Google Cloud Core Rejection ({response.status_code}): {response.text}"}
+            
+    except Exception as e:
+        return {"status": "error", "message": f"Network bridge transport layer exception: {str(e)}"}
