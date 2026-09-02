@@ -278,49 +278,64 @@ with tab_migration:
         st.subheader("📦 Dataset Migration Center")
         st.caption("Publish telemetry data assets directly to your Google Cloud AI Project storage plane.")
         
-        # Automatically inherit the key entered in Tab 1
         active_key = google_api_key if google_api_key else ""
-        
         if not active_key:
             st.info("💡 Please provide a functional Google API Key in the Authentication panel (Tab 1) to enable uploads.")
             
-        target_filename = st.text_input("Target Cloud File Name:", value="telecom_train_logs.txt", key="goog_file_id")
-        raw_log_dump = st.text_area("Paste Corporate Diagnostic Dump Data:", key="goog_dump_data", height=150)
+        # 🌐 CACHE-PROOF RAW URL PATH
+        GITHUB_LOG_URL = "https://githubusercontent.com"
         
-        # 🌐 FIXED RAW ENDPOINT: Pulls down your exact Repo Run: 006 text payload bypassing the GitHub UI wrappers
-        # 🌐 CACHE-PROOF FIX: Hardcodes the true unformatted raw background text stream on GitHub
-        GITHUB_LOG_URL = "".join([
-            "https://", 
-            "raw.", 
-            "githubusercontent.com", 
-            "/SRINIVASTA/enterprise-dslm-gateway/main/telecom_train_logs.txt"
-        ])
+        # Initialize internal buffer memory structures
+        if "migration_buffer" not in st.session_state:
+            st.session_state.migration_buffer = ""
+            
+        col_file_meta, col_fetch_act = st.columns([2, 1])
+        with col_file_meta:
+            target_filename = st.text_input("Target Cloud File Name:", value="telecom_train_logs.txt", key="goog_file_id")
+            
+        with col_fetch_act:
+            st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True)
+            # ✅ FIXED: This button pulls the data safely BEFORE the text area is locked!
+            if st.button("📥 Load Dataset from GitHub", use_container_width=True):
+                with st.spinner("Streaming from repository..."):
+                    try:
+                        res = requests.get(GITHUB_LOG_URL, timeout=8)
+                        if res.status_code == 200:
+                            st.session_state.migration_buffer = res.text
+                            st.success("Loaded successfully!")
+                            st.rerun()
+                        else:
+                            st.error(f"GitHub Error Code: {res.status_code}")
+                    except Exception as e:
+                        st.error(f"Network error: {str(e)}")
+
+        # ✅ FIXED: The text area reads dynamically from our safe migration buffer array
+        raw_log_dump = st.text_area(
+            "Paste Corporate Diagnostic Dump Data:", 
+            value=st.session_state.migration_buffer, 
+            key="goog_dump_data", 
+            height=150
+        )
         
         # Button unlocks exclusively when an active API key string is present
         if st.button("Upload Asset to Google File API Suite", key="goog_submit_btn", type="secondary", disabled=not active_key):
             final_upload_payload = raw_log_dump.strip()
             
-            # 🔄 AUTOMATED GITHUB ARMED FALLBACK LAYER
+            # Smart background fallback layer if they didn't hit the fetch button first
             if not final_upload_payload:
                 st.warning("⚠️ Input field blank! Automatically capturing file from GitHub repository...")
                 try:
                     res = requests.get(GITHUB_LOG_URL, timeout=8)
                     if res.status_code == 200:
                         final_upload_payload = res.text
-                        
-                        # ✨ FIXED HERE: Injects the fetched repo text into the text area's session memory state
-                        st.session_state["goog_dump_data"] = res.text
-                        
-                        st.info("📥 Captured 'telecom_train_logs.txt' successfully from main branch repository stream.")
                 except Exception as e:
-                    st.error(f"❌ Fallback path network exception: {str(e)}")
+                    st.error(f"❌ Fallback network error: {str(e)}")
             
             # Final operational validation check block
             if not target_filename.strip():
                 st.error("❌ Missing Target Cloud File Name target descriptor.")
             elif final_upload_payload:
                 with st.spinner("Streaming data chunk payload directly to Google API infrastructure..."):
-                    # Call your modularized uploader module using the fallback text payload natively
                     result = upload_to_google_ai(active_key, target_filename, final_upload_payload)
                     
                     if result["status"] == "success":
