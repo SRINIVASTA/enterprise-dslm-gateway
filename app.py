@@ -69,8 +69,6 @@ with tab_main:
         if hf_token:
             with st.spinner("Establishing secure handshake with Hugging Face..."):
                 try:
-                    # 🚀 FIX 1: Query the precise backend API identity profile route rather than a landing page root URL
-                    # 🚀 FIX 2: Expanded timeout threshold to 25 seconds to survive initialization lags
                     res = requests.get(
                         "https://huggingface.co", 
                         headers={"Authorization": f"Bearer {hf_token}"}, 
@@ -82,14 +80,13 @@ with tab_main:
                         st.success(f"✅ Verified Account: {user_profile_data.get('name', 'User Profile')}")
                         is_authenticated = True
                     elif res.status_code == 401:
-                        st.error("❌ Authentication Refused: Invalid token. Verify that your token has 'Read' or 'Write' structural access permissions.")
+                        st.error("❌ Authentication Refused: Invalid token. Verify that your token has 'Read' or 'Write' permissions.")
                     else:
                         st.error(f"❌ Handshake Error: Server responded with status {res.status_code}. Retrying stack...")
                         
                 except requests.exceptions.Timeout:
-                    st.error("⚠️ Connection Timeout: The Hugging Face authentication gateway is experiencing significant overhead. Retrying connection loop automatically...")
-                except Exception as e:
-                    # 🚀 FIX 3: Multi-tier fallback secondary pipeline attempt to catch network spikes
+                    st.error("⚠️ Connection Timeout: The Hugging Face authentication gateway is experiencing overhead. Retrying...")
+                except Exception:
                     try:
                         time.sleep(1.5)
                         fallback_res = requests.get(
@@ -103,7 +100,7 @@ with tab_main:
                         else:
                             st.error("❌ Gateway Handshake Failed completely. Double check network rules.")
                     except Exception:
-                        st.error("❌ Validation Failed: Persistent connection block encountered. Please check your cloud network egress parameters.")
+                        st.error("❌ Validation Failed: Persistent connection block encountered.")
         else:
             st.info("💡 Paste your Hugging Face user access token above to begin.")
 
@@ -116,7 +113,6 @@ with tab_main:
         )
         temperature = st.slider("Temperature (Precision Control):", min_value=0.01, max_value=1.5, value=0.1, step=0.05)
         max_tokens = st.slider("Max New Tokens:", min_value=10, max_value=2048, value=300, step=10)
-
     with col_exec:
         st.subheader("📜 3. Enterprise System Templates")
         template_text = (
@@ -167,7 +163,6 @@ with tab_main:
             if not raw_input.strip():
                 st.warning("⚠️ Input data feed cannot be empty.")
             else:
-                # 🚀 FIX 4: Corrected model routing address target endpoint format
                 API_URL = f"https://huggingface.co{model_choice}"
                 headers = {"Authorization": f"Bearer {hf_token}"}
                 payload = {"inputs": compiled_prompt, "parameters": {"temperature": temperature, "max_new_tokens": max_tokens, "return_full_text": False}}
@@ -199,18 +194,18 @@ with tab_main:
                             with col_m3:
                                 st.metric(label="Total Continuous Call Volume", value=st.session_state.query_count)
                                 
-                            
-                        # Proactive warning system before next tick trigger
-                        if st.session_state.total_spend >= BUDGET_CAP:
-                            st.rerun()
-                            
-                    elif res.status_code == 503:
-                        st.warning("⏳ Model waking up in Hugging Face memory. Try again in 15 seconds.")
-                    else:
-                        st.error(f"Error: {res.text}")
+                            if st.session_state.total_spend >= BUDGET_CAP:
+                                st.rerun()
+                                
+                        elif res.status_code == 503:
+                            st.warning("⏳ The targeted DSLM architecture is sleeping. Hugging Face is allocating container nodes. Please wait 15-30 seconds and click run again.")
+                        else:
+                            st.error(f"Execution Error ({res.status_code}): {res.text}")
+                    except Exception as ex:
+                        st.error(f"Pipeline Connection Error during inference runtime: {ex}")
 
 # ------------------------------------------
-# TAB 2: DATA MIGRATION CENTER (ADMIN ONLY)
+# TAB 2: DATA MIGRATION CENTER
 # ------------------------------------------
 with tab_migration:
     if "Administrator" not in user_role:
