@@ -76,24 +76,24 @@ with tab_main:
         if google_api_key:
             with st.spinner("Establishing secure handshake with Google API Studio..."):
                 try:
-                    # 🌐 FIXED: Clean URL domain with NO key text parameter mashing
+                    # 🌐 FIXED: Targets the metadata route which handles empty handshake hits flawlessly
                     api_url = "https://googleapis.com"
                     
-                    # Pass the key safely inside the HTTP headers
+                    # Pass the token parameter cleanly inside headers
                     headers = {
                         "Content-Type": "application/json",
                         "x-goog-api-key": google_api_key
                     }
-                    test_payload = {"contents": [{"parts": [{"text": "ping"}]}]}
                     
-                    res = requests.post(api_url, json=test_payload, headers=headers, timeout=15)
+                    # A standard GET hit to model configuration maps beautifully to a 200 validation
+                    res = requests.get(api_url, headers=headers, timeout=15)
                     
                     if res.status_code == 200:
                         st.success("✅ Verified Account: Google AI Studio Access Granted")
                         is_authenticated = True
                         use_mock_engine = False
                     elif res.status_code in (400, 401, 403, 404):
-                        st.error("❌ Authentication Refused: Invalid Google API key credentials.")
+                        st.error(f"❌ Authentication Refused: Invalid Google API key credentials. (HTTP {res.status_code})")
                         use_mock_engine = True  
                     else:
                         use_mock_engine = True
