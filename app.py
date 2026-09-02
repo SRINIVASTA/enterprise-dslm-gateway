@@ -8,7 +8,7 @@ from scripts.data_masker import mask_sensitive_data
 
 st.set_page_config(page_title="Enterprise DSLM Studio", page_icon="🎛️", layout="wide")
 st.title("🔀 Advanced Enterprise DSLM Portfolio Studio")
-st.caption("Modular multi-file gateway architecture deployed directly via GitHub Web & Streamlit Cloud.")
+st.caption("Modular multi-file gateway architecture mapped to the Google Gemini Endpoint ecosystem.")
 
 st.markdown("---")
 
@@ -25,7 +25,6 @@ user_role = st.sidebar.selectbox(
     ["Engineer (Read & Run)", "Administrator (Full Access & Migration)", "Auditor (Read & Analytics Only)"]
 )
 
-# Render role badges
 if "Engineer" in user_role:
     st.sidebar.info("💼 Access Level: Standard Operator Operations")
 elif "Administrator" in user_role:
@@ -37,7 +36,7 @@ st.sidebar.markdown("---")
 
 # --- FINANCIAL RUNTIME TRACKER ---
 st.sidebar.header("💳 2. Budgetary Cost Guardrails")
-BUDGET_CAP = 0.0500 # Set a hard token ceiling limit for test cycles
+BUDGET_CAP = 0.0500 
 
 st.sidebar.progress(min(1.0, st.session_state.total_spend / BUDGET_CAP))
 st.sidebar.metric(
@@ -63,58 +62,48 @@ with tab_main:
 
     with col_config:
         st.subheader("🔑 1. Authentication")
-        hf_token = st.text_input("Paste Hugging Face Token:", type="password", placeholder="hf_...", key="main_token")
+        google_api_key = st.text_input("Paste Google API Key:", type="password", placeholder="AIzaSy...", key="main_token")
         
-        # Tracking flags for our intelligent routing states
         is_authenticated = False
         use_mock_engine = False
         
-        if hf_token:
-            with st.spinner("Establishing secure handshake with Hugging Face..."):
+        if google_api_key:
+            with st.spinner("Establishing secure handshake with Google API Studio..."):
                 try:
-                    # 🌐 Attempt active cloud verification handshake
-                    res = requests.get(
-                        "https://huggingface.co", 
-                        headers={"Authorization": f"Bearer {hf_token}"}, 
-                        timeout=5
-                    )
+                    # 🌐 REST verification route targeting Google's native Generative Language API endpoint
+                    api_url = f"https://googleapis.com{google_api_key}"
+                    res = requests.get(api_url, headers={'Content-Type': 'application/json'}, timeout=10)
                     
                     if res.status_code == 200:
-                        user_profile_data = res.json()
-                        st.success(f"✅ Verified Account: {user_profile_data.get('name', 'User Profile')}")
+                        st.success("✅ Verified Account: Google AI Studio Access Granted")
                         is_authenticated = True
-                    elif res.status_code == 401:
-                        st.error("❌ Authentication Refused: Invalid token characters.")
+                    elif res.status_code == 400 or res.status_code == 403:
+                        st.error("❌ Authentication Refused: Invalid Google API key credentials.")
                     else:
-                        # Fallback safely if server responds with error codes
                         use_mock_engine = True
                         is_authenticated = True
-                        
                 except Exception:
-                    # 🔌 Network isolation or DNS block encountered -> Trigger fallback mode seamlessly
+                    # 🔌 If the Streamlit server encounters a DNS/network block, switch to mock sandbox natively
                     use_mock_engine = True
                     is_authenticated = True
 
-            # Display the correct system connectivity badge dynamically based on the outcome
             if use_mock_engine:
                 st.warning("⚠️ Network Isolation Detected: Local Mock Inference Engine Activated for Live Demo Workflow.")
-                # Save the fallback instruction inside the session state for Block 2 to read
                 st.session_state.engine_mode = "mock"
             else:
                 st.session_state.engine_mode = "live"
         else:
-            st.info("💡 Paste your Hugging Face user access token above to begin.")
+            st.info("💡 Paste your Google API Key (starts with 'AIzaSy') above to begin.")
 
         st.markdown("---")
         
         st.subheader("🎛️ 2. Inference Hyperparameters")
         model_choice = st.selectbox(
-            "Target Model Architecture:", 
-            ["mistralai/Mistral-7B-Instruct-v0.3", "meta-llama/Llama-3.1-8B-Instruct", "microsoft/Phi-4"]
+            "Target Google Architecture:", 
+            ["gemini-2.5-flash", "gemini-2.5-pro"]
         )
-        temperature = st.slider("Temperature (Precision Control):", min_value=0.01, max_value=1.5, value=0.1, step=0.05)
-        max_tokens = st.slider("Max New Tokens:", min_value=10, max_value=2048, value=300, step=10)
-
+        temperature = st.slider("Temperature (Precision Control):", min_value=0.0, max_value=1.0, value=0.1, step=0.05)
+        max_tokens = st.slider("Max Output Tokens:", min_value=10, max_value=2048, value=300, step=10)
     with col_exec:
         st.subheader("📜 3. Enterprise System Templates")
         template_text = (
@@ -169,11 +158,18 @@ with tab_main:
                 
                 with st.spinner(f"Processing via {current_engine.upper()} infrastructure pipeline..."):
                     
-                    # 📡 PIPELINE PATH A: LIVE EXECUTION
+                    # 📡 PATH A: LIVE GOOGLE GEMINI EXECUTION
                     if current_engine == "live":
-                        API_URL = f"https://huggingface.co{model_choice}"
-                        headers = {"Authorization": f"Bearer {hf_token}"}
-                        payload = {"inputs": compiled_prompt, "parameters": {"temperature": temperature, "max_new_tokens": max_tokens, "return_full_text": False}}
+                        # Google's core direct REST API call pattern for handling generative language updates
+                        API_URL = f"https://googleapis.com{model_choice}:generateContent?key={google_api_key}"
+                        headers = {"Content-Type": "application/json"}
+                        payload = {
+                            "contents": [{"parts": [{"text": compiled_prompt}]}],
+                            "generationConfig": {
+                                "temperature": temperature,
+                                "maxOutputTokens": max_tokens
+                            }
+                        }
                         
                         try:
                             res = requests.post(API_URL, headers=headers, json=payload, timeout=40)
@@ -181,20 +177,18 @@ with tab_main:
                             
                             if res.status_code == 200:
                                 result = res.json()
-                                output_text = result.get('generated_text', '') if isinstance(result, list) else str(result)
-                                st.success("🤖 Analysis Complete (Live Cloud Inference)")
+                                # Safe dictionary parsing extraction mapping out Gemini's standard nested JSON structure
+                                output_text = result['candidates'][0]['content']['parts'][0]['text']
+                                st.success("🤖 Analysis Complete (Live Google Cloud Inference)")
                                 st.write(output_text)
-                            elif res.status_code == 503:
-                                st.warning("⏳ Targeted DSLM is warming up on the cluster. Try again in a few moments.")
-                                output_text = None
                             else:
-                                st.error(f"Execution Error ({res.status_code}): {res.text}")
-                                output_text = None
+                                st.error(f"Google Execution Error ({res.status_code}): {res.text}")
+                                current_engine = "mock"  # Dynamic downgrade if API limits are breached
                         except Exception as e:
-                            st.error(f"Live route crashed, falling back to mock... Error: {e}")
+                            st.error(f"Live route connection blocked, falling back to mock sandbox... Error: {e}")
                             current_engine = "mock"
                     
-                    # 🔌 PIPELINE PATH B: RESILIENT MOCK EXECUTOR
+                    # 🔌 PATH B: LOCAL RESILIENT MOCK EXECUTOR
                     if current_engine == "mock":
                         time.sleep(1.5)
                         latency = round(time.time() - start_time, 2)
