@@ -103,6 +103,7 @@ with tab_main:
         )
         temperature = st.slider("Temperature (Precision Control):", min_value=0.01, max_value=1.5, value=0.1, step=0.05)
         max_tokens = st.slider("Max New Tokens:", min_value=10, max_value=2048, value=300, step=10)
+        
     with col_exec:
         st.subheader("📜 3. Enterprise System Templates")
         template_text = (
@@ -154,7 +155,7 @@ with tab_main:
                 st.warning("⚠️ Input data feed cannot be empty.")
             else:
                 # 🚀 FIX: Corrected explicit server domain route syntax to prevent string smashing
-                API_URL = f"https://huggingface.co{model_choice}"
+                API_URL = f"https://api-inference.huggingface.co/models/{model_choice}"
                 headers = {"Authorization": f"Bearer {hf_token}"}
                 payload = {"inputs": compiled_prompt, "parameters": {"temperature": temperature, "max_new_tokens": max_tokens, "return_full_text": False}}
                 
