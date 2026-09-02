@@ -125,7 +125,7 @@ with tab_main:
         )
         st.text_area("System Prompt Preview (Read-Only):", value=template_text, height=130, disabled=True)
 
-                st.markdown("---")
+        st.markdown("---")
         st.subheader("📝 4. Live Data Feed Input")
         
         # 🌐 TARGET ROUTE: Direct raw asset link matching your repository configuration schema
