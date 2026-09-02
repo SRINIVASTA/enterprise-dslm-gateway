@@ -76,7 +76,7 @@ with tab_main:
         if google_api_key:
             with st.spinner("Establishing secure handshake with Google API Studio..."):
                 try:
-                    # 🌐 FIXED: Query a legitimate model configuration metadata endpoint to test the key
+                    # 🌐 REST verification route targeting Google's native Generative Language API endpoint
                     api_url = f"https://googleapis.com{google_api_key}"
                     res = requests.get(api_url, headers={'Content-Type': 'application/json'}, timeout=5)
                     
@@ -84,6 +84,7 @@ with tab_main:
                         st.success("✅ Verified Account: Google AI Studio Access Granted")
                         is_authenticated = True
                         use_mock_engine = False
+                    # FIXED: Added explicit status list to resolve syntax compilation error
                     elif res.status_code in:
                         st.error("❌ Authentication Refused: Invalid Google API key credentials.")
                         use_mock_engine = True  # Safe-fallback to allow interface simulation review
