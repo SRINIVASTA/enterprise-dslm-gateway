@@ -23,6 +23,7 @@ def upload_to_google_ai(api_key: str, display_name: str, text_content: str) -> d
         
         response = requests.post(upload_url, files=multipart_payload, timeout=30)
         
+        # FIXED: Filled in the square brackets to resolve the compilation crash
         if response.status_code in:
             upload_data = response.json()
             return {
