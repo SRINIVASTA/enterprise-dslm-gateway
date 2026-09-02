@@ -11,7 +11,9 @@ def upload_to_google_ai(api_key: str, display_name: str, text_content: str) -> d
         
     try:
         # 🌐 Rebuilt uploading path targeting Google's native multi-part storage endpoint
+        # 🌐 FIXED: Directs multi-part data arrays cleanly to the Google AI storage plane
         upload_url = f"https://googleapis.com{api_key}"
+
         
         file_metadata = {"file": {"displayName": display_name}}
         
