@@ -68,7 +68,7 @@ with tab_main:
 
     with col_config:
         st.subheader("🔑 1. Authentication")
-        google_api_key = st.text_input("Paste Google API Key:", type="password", placeholder="AIzaSy...", key="main_token")
+        google_api_key = st.text_input("Paste Google API Key:", type="password", placeholder="", key="main_token")
         
         is_authenticated = False
         use_mock_engine = False
