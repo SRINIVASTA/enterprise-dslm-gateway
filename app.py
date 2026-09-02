@@ -288,7 +288,13 @@ with tab_migration:
         raw_log_dump = st.text_area("Paste Corporate Diagnostic Dump Data:", key="goog_dump_data", height=150)
         
         # 🌐 FIXED RAW ENDPOINT: Pulls down your exact Repo Run: 006 text payload bypassing the GitHub UI wrappers
-        GITHUB_LOG_URL = "https://githubusercontent.com"
+        # 🌐 CACHE-PROOF FIX: Hardcodes the true unformatted raw background text stream on GitHub
+        GITHUB_LOG_URL = "".join([
+            "https://", 
+            "raw.", 
+            "githubusercontent.com", 
+            "/SRINIVASTA/enterprise-dslm-gateway/main/telecom_train_logs.txt"
+        ])
         
         # Button unlocks exclusively when an active API key string is present
         if st.button("Upload Asset to Google File API Suite", key="goog_submit_btn", type="secondary", disabled=not active_key):
